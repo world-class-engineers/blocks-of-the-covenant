@@ -1,0 +1,17 @@
+{
+  "resource_pack_name": "blocks_of_the_covenant",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "temple_menorah": {
+      "textures": "textures/blocks/temple_menorah"
+    },
+    "fire_0": {
+      "textures": "textures/blocks/fire_0"
+    },
+    "fire_1": {
+      "textures": "textures/blocks/fire_1"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "blocks-of-the-covenant",
+  "version": "0.1.0",
+  "productName": "Blocks of the Covenant",
+  "description": "Blocks of the Covenant enables you to create and explore the ancient Hebrew world from the Old Testament, with artifacts for building your own Tabernacle, complete with menorah.",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "watch": "just-scripts local-deploy --watch",
+    "build": "just-scripts build",
+    "build:production": "just-scripts build --production",
+    "clean": "just-scripts clean",
+    "local-deploy": "just-scripts local-deploy",
+    "mcaddon": "just-scripts mcaddon",
+    "mcaddon:production": "just-scripts mcaddon --production"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@minecraft/core-build-tasks": "5.5.0",
+    "@types/semver": "^7.7.1",
+    "just-scripts": "2.6.0",
+    "prettier": "3.8.3",
+    "semver": "^7.8.2",
+    "ts-node": "10.9.1",
+    "typescript": "5.5.4",
+    "varlock": "^1.5.0"
+  }
+}

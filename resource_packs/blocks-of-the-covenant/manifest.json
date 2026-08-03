@@ -1,0 +1,27 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Blocks of the Covenant v0.1.0 Resource Pack",
+    "description": "Resource pack for Blocks of the Covenant",
+    "uuid": "f4faa84b-f0cb-4ed9-a9d3-5101e073079d",
+    "version": "0.1.0",
+    "min_engine_version": [
+      1,
+      26,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "uuid": "49fa2b5a-a2d2-47d1-abdf-805344b20bd8",
+      "version": "0.1.0",
+      "type": "resources"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "951b4793-24bc-4b51-b50f-b07e4fc1e843",
+      "version": "0.1.0"
+    }
+  ]
+}

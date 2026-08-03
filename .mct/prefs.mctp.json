@@ -1,0 +1,138 @@
+{
+  "dataType": 1,
+  "variants": {},
+  "storageBasePath": "",
+  "contentsModified": "2026-08-02T10:00:00.000Z",
+  "created": "2026-08-02T10:00:00.000Z",
+  "lastOpened": "2026-08-02T10:00:00.000Z",
+  "dataStorageRelativePath": "/Blocks of the Covenant/",
+  "editPreference": 0,
+  "name": "Blocks of the Covenant",
+  "title": "Blocks of the Covenant",
+  "description": "A Minecraft Bedrock Add-On",
+  "defaultBehaviorPackUniqueId": "951b4793-24bc-4b51-b50f-b07e4fc1e843",
+  "defaultResourcePackUniqueId": "f4faa84b-f0cb-4ed9-a9d3-5101e073079d",
+  "defaultScriptModuleUniqueId": "43b7eb3a-b7dd-4cfa-b72a-bcd2f959b851",
+  "defaultDataUniqueId": "769c897d-1d48-4470-aeb0-0afc85bffada",
+  "focus": 0,
+  "items": [
+    {
+      "itemType": 164,
+      "variants": {},
+      "projectPath": "/README.md",
+      "storageType": 0,
+      "creationType": 0,
+      "tags": [],
+      "name": "README.md",
+      "isInWorld": false
+    },
+    {
+      "itemType": 59,
+      "variants": {},
+      "projectPath": "/package.json",
+      "storageType": 0,
+      "creationType": 1,
+      "tags": [],
+      "name": "package.json",
+      "isInWorld": false
+    },
+    {
+      "itemType": 58,
+      "variants": {},
+      "projectPath": "/tsconfig.json",
+      "storageType": 0,
+      "creationType": 0,
+      "tags": [],
+      "name": "tsconfig.json",
+      "isInWorld": false
+    },
+    {
+      "itemType": 109,
+      "variants": {},
+      "projectPath": "/behavior_packs/blocks-of-the-covenant/",
+      "storageType": 1,
+      "creationType": 0,
+      "tags": [],
+      "name": "starter",
+      "isInWorld": false
+    },
+    {
+      "itemType": 5,
+      "variants": {},
+      "projectPath": "/behavior_packs/blocks-of-the-covenant/manifest.json",
+      "storageType": 0,
+      "creationType": 0,
+      "tags": ["behaviorpackmanifest"],
+      "name": "manifest.json",
+      "isInWorld": false
+    },
+    {
+      "itemType": 110,
+      "variants": {},
+      "projectPath": "/resource_packs/blocks-of-the-covenant/",
+      "storageType": 1,
+      "creationType": 0,
+      "tags": [],
+      "name": "starter",
+      "isInWorld": false
+    },
+    {
+      "itemType": 14,
+      "variants": {},
+      "projectPath": "/resource_packs/blocks-of-the-covenant/manifest.json",
+      "storageType": 0,
+      "creationType": 0,
+      "tags": ["resourcepackmanifest"],
+      "name": "manifest.json",
+      "isInWorld": false
+    },
+    {
+      "itemType": 121,
+      "variants": {},
+      "projectPath": "/.env",
+      "storageType": 0,
+      "creationType": 1,
+      "tags": [],
+      "name": ".env"
+    },
+    {
+      "itemType": 122,
+      "variants": {},
+      "projectPath": "/.prettierrc.json",
+      "storageType": 0,
+      "creationType": 1,
+      "tags": [],
+      "name": ".prettierrc.json"
+    },
+    {
+      "itemType": 119,
+      "variants": {},
+      "projectPath": "/just.config.ts",
+      "storageType": 0,
+      "creationType": 1,
+      "tags": [],
+      "name": "just.config.ts"
+    },
+    {
+      "itemType": 120,
+      "variants": {},
+      "projectPath": "/eslint.config.mjs",
+      "storageType": 0,
+      "creationType": 1,
+      "tags": [],
+      "name": "eslint.config.mjs"
+    }
+  ],
+  "projectFolderTitle": "blocks-of-the-covenant",
+  "creator": "Developer",
+  "shortName": "blocks-of-the-covenant",
+  "track": 0,
+  "defaultBehaviorPackVersion": [0, 1, 0],
+  "versionMajor": 0,
+  "versionMinor": 1,
+  "versionPatch": 0,
+  "defaultResourcePackVersion": [0, 1, 0],
+  "previewImageBase64": "",
+  "collapsedStoragePaths": [],
+  "gitHubReferences": []
+}

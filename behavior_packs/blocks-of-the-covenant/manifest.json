@@ -1,0 +1,28 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Blocks of the Covenant v0.1.0",
+    "description": "A Minecraft Bedrock Add-On",
+    "uuid": "951b4793-24bc-4b51-b50f-b07e4fc1e843",
+    "version": "0.1.0",
+    "min_engine_version": [
+      1,
+      26,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "uuid": "769c897d-1d48-4470-aeb0-0afc85bffada",
+      "version": "0.1.0",
+      "type": "data"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "f4faa84b-f0cb-4ed9-a9d3-5101e073079d",
+      "version": "0.1.0",
+      "type": "resources"
+    }
+  ]
+}

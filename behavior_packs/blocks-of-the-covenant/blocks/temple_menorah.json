@@ -1,0 +1,47 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:block": {
+    "description": {
+      "identifier": "blocks_of_the_covenant:temple_menorah",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.temple_menorah",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "temple_menorah",
+          "render_method": "alpha_test"
+        },
+        "flame": {
+          "texture": "fire_0",
+          "render_method": "alpha_test",
+          "face_dimming": false,
+          "ambient_occlusion": 0
+        },
+        "flame_alt": {
+          "texture": "fire_1",
+          "render_method": "alpha_test",
+          "face_dimming": false,
+          "ambient_occlusion": 0
+        }
+      },
+      "minecraft:light_emission": 15,
+      "minecraft:collision_box": {
+        "origin": [-6.5, 0, -2.5],
+        "size": [13, 14, 5]
+      },
+      "minecraft:selection_box": {
+        "origin": [-6.5, 0, -2.5],
+        "size": [13, 14, 5]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.5
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.5
+      }
+    }
+  }
+}
