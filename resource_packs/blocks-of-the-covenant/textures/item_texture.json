@@ -5,7 +5,7 @@
   "num_mip_levels": 4,
   "texture_data": {
     "temple_menorah": {
-      "textures": "textures/blocks/temple_menorah"
+      "textures": "textures/items/temple_menorah"
     }
   }
 }

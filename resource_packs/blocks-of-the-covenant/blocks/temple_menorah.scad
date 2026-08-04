@@ -1,55 +1,56 @@
 
-module flame() { cube([0.75, 0.75, 0.75]); }
-module top() { cube(); }
-module stem(height) { cube([0.5, 0.5, height]); }
-module branch(width) { cube([width, 0.5, 0.5]); }
+module flame() { cube([1.5, 1.5, 1.5]); }
+module top() { cube([2, 2, 2]); }
+module stem(height) { cube([1, 1, height]); }
+module branch(width) { cube([width, 1, 1]); }
 
 module base() {
-  cube([5,5,1]);
-  translate([1,1,1]) cube([3,3,1]);
+  cube([10, 10, 2]);
+  translate([2, 2, 2]) cube([6, 6, 2]);
 }
 
 module temple_menorah() {
   color("gold") {
     base();
 
-    translate([2.25,2.25, 2]) stem(10);
+    translate([4.5, 4.5, 4]) stem(20);
 
     // top tier (center 3)
-    translate([0.25, 2.25, 9.5]) branch(4.5);
-    translate([0.25,2.25,9.5]) stem(2.5);
-    translate([4.25,2.25,9.5]) stem(2.5);
+    translate([0.5, 4.5, 19]) branch(9);
+    translate([0.5, 4.5, 19]) stem(5);
+    translate([8.5, 4.5, 19]) stem(5);
 
     // mid tier (center 2 and 6)
-    translate([-1.75, 2.25, 7.5]) branch(8.5);
-    translate([-1.75,2.25,7.5]) stem(4.5);
-    translate([6.25,2.25,7.5]) stem(4.5);
+    translate([-3.5, 4.5, 15]) branch(17);
+    translate([-3.5, 4.5, 15]) stem(9);
+    translate([12.5, 4.5, 15]) stem(9);
 
     // bottom tier (center 1 and 7)
-    translate([-3.75, 2.25, 5.5]) branch(12.5);
-    translate([-3.75,2.25,5.5]) stem(6.5);
-    translate([8.25,2.25,5.5]) stem(6.5);
+    translate([-7.5, 4.5, 11]) branch(25);
+    translate([-7.5, 4.5, 11]) stem(13);
+    translate([16.5, 4.5, 11]) stem(13);
 
-    translate([-4, 2, 12]) top();
-    translate([-2, 2, 12]) top();
-    translate([0, 2, 12]) top();
-    translate([2, 2, 12]) top();
-    translate([4, 2, 12]) top();
-    translate([6, 2, 12]) top();
-    translate([8, 2, 12]) top();
+    translate([-8, 4, 24]) top();
+    translate([-4, 4, 24]) top();
+    translate([0, 4, 24]) top();
+    translate([4, 4, 24]) top();
+    translate([8, 4, 24]) top();
+    translate([12, 4, 24]) top();
+    translate([16, 4, 24]) top();
   }
 
   color("orange") {
-    translate([-4 + 0.125, 2 + 0.125, 13]) flame();
-    translate([-2 + 0.125, 2 + 0.125, 13]) flame();
-    translate([0 + 0.125, 2 + 0.125, 13]) flame();
-    translate([2 + 0.125, 2 + 0.125, 13]) flame();
-    translate([4 + 0.125, 2 + 0.125, 13]) flame();
-    translate([6 + 0.125, 2 + 0.125, 13]) flame();
-    translate([8 + 0.125, 2 + 0.125, 13]) flame();
+    translate([-8 + 0.25, 4.5, 26]) flame();
+    translate([-4 + 0.25, 4.5, 26]) flame();
+    translate([0 + 0.25, 4.5, 26]) flame();
+    translate([4 + 0.25, 4.5, 26]) flame();
+    translate([8 + 0.25, 4.5, 26]) flame();
+    translate([12 + 0.25, 4.5, 26]) flame();
+    translate([16 + 0.25, 4.5, 26]) flame();
   }
 }
 
-translate([-2.5,0,2.5])
-  rotate([-90, 0, 0])
-    temple_menorah();
+//// uncomment below to convert it to the Minecraft coordinate system
+// translate([-10, 0, 10])
+//  rotate([-90, 0, 0])
+temple_menorah();
