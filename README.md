@@ -1,6 +1,6 @@
 # Blocks of the Covenant
 
-![Blocks of the Covenant](resource_packs/blocks-of-the-covenant/pack_icon.png)
+![Blocks of the Covenant](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/resource_packs/blocks-of-the-covenant/pack_icon.png)
 
 **Build the stories of the Bible. Walk through them block by block.**
 
@@ -57,49 +57,49 @@ experienced from beginning to end.
 
 ## Gallery: A Preview of the Plagues
 
-Concept art for the coming plagues of Egypt:
+Concept art for the coming plagues of Egypt. Note that while these images are AI-generated, the actual artwork for these features as they are implemented will be human-powered!
 
-![The Nile turned to blood](docs/moses_putting_his_staff_into_the_nile_river_and_surrounding.jpg)
+![The Nile turned to blood](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/moses_putting_his_staff_into_the_nile_river_and_surrounding.jpg)
 
 _The Nile turned to blood_
 
-![Swarms of frogs cover the land](docs/swarms_of_frogs_cover_the_land_surrounding_the_Nile_River_a.jpg)
+![Swarms of frogs cover the land](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/swarms_of_frogs_cover_the_land_surrounding_the_Nile_River_a.jpg)
 
 _Swarms of frogs cover the land_
 
-![The dust turned to biting gnats](docs/the_dust_blowing_in_ancient_egypt_is_turned_into_biting_gnat.jpg)
+![The dust turned to biting gnats](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/the_dust_blowing_in_ancient_egypt_is_turned_into_biting_gnat.jpg)
 
 _The dust of Egypt turned to biting gnats_
 
-![Dense swarms of flies](docs/dense_swarms_of_flies_fill_the_air_-_a_plague_of_Egypt_Minec.jpg)
+![Dense swarms of flies](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/dense_swarms_of_flies_fill_the_air_-_a_plague_of_Egypt_Minec.jpg)
 
 _Dense swarms of flies fill the air_
 
-![The plague on the livestock](docs/egyptian_livestock_lay_dead_on_the_ground_-_a_plague_of_Egyp.jpg)
+![The plague on the livestock](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/egyptian_livestock_lay_dead_on_the_ground_-_a_plague_of_Egyp.jpg)
 
 _The plague on the livestock of Egypt_
 
-![Painful boils](docs/Boils_Painful_boils_broke_out_on_people_and_animals_A_plague.jpg)
+![Painful boils](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/Boils_Painful_boils_broke_out_on_people_and_animals_A_plague.jpg)
 
 _Painful boils break out on people and animals_
 
-![Fiery hail](docs/fiery_hail_destroying_crops_trees_and_people_outdoors_A_plag.jpg)
+![Fiery hail](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/fiery_hail_destroying_crops_trees_and_people_outdoors_A_plag.jpg)
 
 _Fiery hail destroys crops, trees, and all in the field_
 
-![Locusts devour every plant](docs/Locusts_eat_every_remaining_plant_A_plague_of_Egypt_Minecraf.jpg)
+![Locusts devour every plant](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/Locusts_eat_every_remaining_plant_A_plague_of_Egypt_Minecraf.jpg)
 
 _Locusts devour every remaining plant_
 
-![Three days of darkness](docs/Thick_darkness_covered_Egypt_for_three_days_A_plague_of_Egyp.jpg)
+![Three days of darkness](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/Thick_darkness_covered_Egypt_for_three_days_A_plague_of_Egyp.jpg)
 
 _Thick darkness covers Egypt for three days_
 
-![The plague of the firstborn](docs/the_plague_of_the_firstborn_The_death_of_every_firstborn_Egy.jpg)
+![The plague of the firstborn](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/docs/the_plague_of_the_firstborn_The_death_of_every_firstborn_Egy.jpg)
 
 _The plague of the firstborn_
 
 ## Technical Details
 
 Installation, development setup, and pack structure live in
-[DEVELOPMENT.md](DEVELOPMENT.md).
+[DEVELOPMENT.md](https://raw.githubusercontent.com/world-class-engineers/blocks-of-the-covenant/main/DEVELOPMENT.md).
