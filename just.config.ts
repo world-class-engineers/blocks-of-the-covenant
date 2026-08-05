@@ -1,6 +1,8 @@
-import { parallel, series, task } from 'just-scripts';
+import { parallel, series, task, tscTask } from 'just-scripts';
 import {
+  BundleTaskParameters,
   CopyTaskParameters,
+  bundleTask,
   cleanTask,
   cleanCollateralTask,
   copyTask,
@@ -27,9 +29,17 @@ if (!version) {
 }
 const versionString = `${version.major}.${version.minor}.${version.patch}`;
 
+const bundleTaskOptions: BundleTaskParameters = {
+  entryPoint: path.join(__dirname, './scripts/main.ts'),
+  external: ['@minecraft/server', '@minecraft/server-ui'],
+  outfile: path.resolve(__dirname, './dist/scripts/main.js'),
+  minifyWhitespace: true,
+  sourcemap: false,
+  outputSourcemapPath: path.resolve(__dirname, './dist/debug'),
+};
 const copyTaskOptions: CopyTaskParameters = {
   copyToBehaviorPacks: [`./behavior_packs/${projectName}`],
-  copyToScripts: [],
+  copyToScripts: ['./dist/scripts'],
   copyToResourcePacks: [`./resource_packs/${projectName}`],
 };
 const mcaddonTaskOptions: ZipTaskParameters = {
@@ -74,6 +84,9 @@ task('stamp', () => {
     fs.writeFileSync(bpManifestPath, JSON.stringify(bpManifest, null, 2));
   })();
 });
+task('typescript', tscTask());
+task('bundle', bundleTask(bundleTaskOptions));
+task('build', series('stamp', 'typescript', 'bundle'));
 task('clean-local', cleanTask(DEFAULT_CLEAN_DIRECTORIES));
 task('clean-collateral', cleanCollateralTask(STANDARD_CLEAN_PATHS));
 task('clean', parallel('clean-local', 'clean-collateral'));
@@ -126,11 +139,12 @@ task(
   'local-deploy',
   watchTask(
     [
+      'scripts/**/*.ts',
       'behavior_packs/**/*.{json,lang,tga,ogg,png}',
       'resource_packs/**/*.{json,lang,tga,ogg,png}',
       '!**/manifest.json',
     ],
-    series('clean-local', 'stamp', 'package'),
+    series('clean-local', 'build', 'package'),
   ),
 );
 task('createMcaddonFile', mcaddonTask(mcaddonTaskOptions));
@@ -138,7 +152,7 @@ task(
   'mcaddon',
   series(
     'clean-local',
-    'stamp',
+    'build',
     'generateWorldPackManifests',
     'createMcaddonFile',
   ),

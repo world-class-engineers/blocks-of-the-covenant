@@ -15,6 +15,11 @@
     "mcaddon:production": "just-scripts mcaddon --production"
   },
   "dependencies": {
+    "@minecraft/server": "2.8.0",
+    "@minecraft/server-ui": "2.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "tsyringe": "^4.10.0"
   },
   "devDependencies": {
     "@minecraft/core-build-tasks": "5.5.0",

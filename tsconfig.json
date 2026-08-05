@@ -15,5 +15,6 @@
     "declaration": false,
     "sourceMap": true
   },
+  "include": ["scripts/main.ts"],
   "exclude": ["node_modules", "dist", "lib"]
 }
