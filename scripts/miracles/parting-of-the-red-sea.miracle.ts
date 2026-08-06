@@ -1,19 +1,58 @@
-import { distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  map,
+  switchMap,
+  takeUntil,
+} from 'rxjs/operators';
 import { BaseMiracle } from './base-miracle';
-import { interval } from 'rxjs';
-import { BlockPermutation, BlockVolume, Vector3 } from '@minecraft/server';
+import { interval, Subject } from 'rxjs';
+import { BlockVolume, system, Vector3 } from '@minecraft/server';
 import { Vector3Utils } from '@minecraft/math';
 
-// How often prophet positions are sampled while the miracle is active.
-const POLLING_INTERVAL_MS = 200;
+const POLLING_INTERVAL_MS = 500;
+const HORIZONTAL_RADIUS = 25;
 
-// Horizontal radius of the dry-ground cylinder cleared around the prophet.
-const CYLINDER_RADIUS = 25;
+const WATER_BLOCK_TYPE = 'minecraft:water';
+const AIR_BLOCK_TYPE = 'minecraft:air';
+const BARRIER_BLOCK_TYPE = 'minecraft:barrier';
 
-// Miracle that simulates the parting of the Red Sea for players tagged as prophets.
-// It repeatedly clears water blocks inside a cylinder centered on the prophet and
-// restores water to blocks that were previously displaced but are no longer within
-// the current cylinder.
+const DEAD_TO_ALIVE_CORAL: Record<string, string> = {
+  'minecraft:dead_tube_coral': 'minecraft:tube_coral',
+  'minecraft:dead_brain_coral': 'minecraft:brain_coral',
+  'minecraft:dead_bubble_coral': 'minecraft:bubble_coral',
+  'minecraft:dead_fire_coral': 'minecraft:fire_coral',
+  'minecraft:dead_horn_coral': 'minecraft:horn_coral',
+  'minecraft:dead_tube_coral_block': 'minecraft:tube_coral_block',
+  'minecraft:dead_brain_coral_block': 'minecraft:brain_coral_block',
+  'minecraft:dead_bubble_coral_block': 'minecraft:bubble_coral_block',
+  'minecraft:dead_fire_coral_block': 'minecraft:fire_coral_block',
+  'minecraft:dead_horn_coral_block': 'minecraft:horn_coral_block',
+  'minecraft:dead_tube_coral_fan': 'minecraft:tube_coral_fan',
+  'minecraft:dead_brain_coral_fan': 'minecraft:brain_coral_fan',
+  'minecraft:dead_bubble_coral_fan': 'minecraft:bubble_coral_fan',
+  'minecraft:dead_fire_coral_fan': 'minecraft:fire_coral_fan',
+  'minecraft:dead_horn_coral_fan': 'minecraft:horn_coral_fan',
+};
+
+const WATERLOGGED_OCEAN_TYPES = [
+  'minecraft:tube_coral',
+  'minecraft:brain_coral',
+  'minecraft:bubble_coral',
+  'minecraft:fire_coral',
+  'minecraft:horn_coral',
+  'minecraft:tube_coral_fan',
+  'minecraft:brain_coral_fan',
+  'minecraft:bubble_coral_fan',
+  'minecraft:fire_coral_fan',
+  'minecraft:horn_coral_fan',
+  'minecraft:sea_pickle',
+];
+
+interface PartingEvent {
+  prophet: string;
+  position: Vector3;
+}
+
 export class PartingOfTheRedSeaMiracle extends BaseMiracle {
   readonly key = 'parting-of-the-red-sea';
   readonly displayName = 'Parting of the Red Sea';
@@ -25,45 +64,50 @@ export class PartingOfTheRedSeaMiracle extends BaseMiracle {
     `When the Egyptians chased after them, the waters returned and covered them, and not one of them survived.`,
   ];
 
-  // Tracks water block locations that were turned into air by the miracle.
-  displacedWater = new Map<string, Vector3>();
-  // Tracks barrier blocks placed along the boundary of displaced air.
-  boundaryBarriers = new Set<string>();
+  private readonly displacedWater = new Map<string, Vector3>();
+  private readonly boundaryBarriers = new Map<string, Vector3>();
+  private readonly outOfWater$ = new Subject<void>();
 
   private locationKey(location: Vector3): string {
     return `${location.x},${location.y},${location.z}`;
   }
 
-  private parseLocationKey(key: string): Vector3 {
-    const [x, y, z] = key.split(',').map(Number);
-    return { x, y, z };
-  }
-
-  private isWithinCylinder(
-    location: Vector3,
-    center: Vector3,
-    radius: number,
-  ): boolean {
+  private isWithinBox(loc: Vector3, cx: number, cz: number): boolean {
     return (
-      Vector3Utils.distance(location, {
-        x: center.x,
-        y: location.y,
-        z: center.z,
-      }) <= radius
+      Math.abs(loc.x - cx) <= HORIZONTAL_RADIUS &&
+      Math.abs(loc.z - cz) <= HORIZONTAL_RADIUS
     );
   }
 
-  private isCylinderBoundary(
-    location: Vector3,
-    center: Vector3,
-    radius: number,
-  ): boolean {
-    return [
-      { x: location.x + 1, y: location.y, z: location.z },
-      { x: location.x - 1, y: location.y, z: location.z },
-      { x: location.x, y: location.y, z: location.z + 1 },
-      { x: location.x, y: location.y, z: location.z - 1 },
-    ].some((neighbor) => !this.isWithinCylinder(neighbor, center, radius));
+  private isBoxBoundary(loc: Vector3, cx: number, cz: number): boolean {
+    return (
+      Math.abs(loc.x - cx) === HORIZONTAL_RADIUS ||
+      Math.abs(loc.z - cz) === HORIZONTAL_RADIUS
+    );
+  }
+
+  private fillBlocksChunked(
+    fx: number,
+    fz: number,
+    tx: number,
+    tz: number,
+    fy: number,
+    ty: number,
+    blockType: string,
+    blockFilter?: { blockTypes?: string[]; includeTypes?: string[] },
+  ) {
+    const xzArea = (tx - fx + 1) * (tz - fz + 1);
+    const maxY = Math.max(1, Math.floor(32768 / xzArea));
+    for (let y = fy; y <= ty; y += maxY) {
+      this.overworld.fillBlocks(
+        new BlockVolume(
+          { x: fx, y, z: fz },
+          { x: tx, y: Math.min(y + maxY - 1, ty), z: tz },
+        ),
+        blockType,
+        blockFilter ? { blockFilter } : undefined,
+      );
+    }
   }
 
   get overworld() {
@@ -73,118 +117,252 @@ export class PartingOfTheRedSeaMiracle extends BaseMiracle {
   constructor() {
     super();
 
+    let i = 0;
     this.performed$
       .pipe(
-        // Find all prophet players when the miracle is performed.
         map(() => this.world.getPlayers({ tags: ['prophet'] })[0]),
-        // For each prophet, start a polling stream that captures their position.
         switchMap((prophet) =>
           interval(POLLING_INTERVAL_MS).pipe(
-            map(() => ({
-              prophet: prophet.name,
-              position: prophet.location,
-              viewDirection: prophet.getViewDirection(),
-            })),
-            // Skip samples where the prophet hasn't moved, so the cylinder is only
-            // recomputed when they change location.
-            distinctUntilChanged((previous, current) => {
-              const a = previous.position;
-              const b = current.position;
-              return a.x === b.x && a.y === b.y && a.z === b.z;
-            }),
+            takeUntil(this.outOfWater$),
+            map(
+              () =>
+                ({
+                  prophet: prophet.name,
+                  position: prophet.location,
+                }) as PartingEvent,
+            ),
           ),
         ),
-        // Convert the prophet's position into a cylinder of dry ground.
-        map((data) => {
-          const BEDROCK_Y = -64;
-          const SKY_LIMIT_Y = 320;
-
-          // Cylinder centered on the prophet's position, with its floor on bedrock
-          // and its ceiling at the build height limit.
-          const center = {
-            x: Math.floor(data.position.x),
-            y: 0,
-            z: Math.floor(data.position.z),
-          };
-
-          // Bounding box enclosing the cylinder so candidate blocks can be queried.
-          const boundingBox = new BlockVolume(
-            {
-              x: center.x - CYLINDER_RADIUS,
-              y: BEDROCK_Y,
-              z: center.z - CYLINDER_RADIUS,
-            },
-            {
-              x: center.x + CYLINDER_RADIUS,
-              y: SKY_LIMIT_Y,
-              z: center.z + CYLINDER_RADIUS,
-            },
-          );
-
-          return { center, boundingBox };
-        }),
-        // Query water and air blocks inside the cylinder's bounding box.
-        map(({ center, boundingBox }) => ({
-          center,
-          locations: this.overworld.getBlocks(boundingBox, {
-            includeTypes: ['minecraft:water', 'minecraft:air'],
-          }),
-        })),
-        tap(({ center, locations }) => {
-          const displacedWater = this.displacedWater;
-          const boundaryBarriers = this.boundaryBarriers;
-
-          // Restore any displaced water blocks that are no longer inside the current cylinder.
-          for (const [key, location] of displacedWater.entries()) {
-            if (!this.isWithinCylinder(location, center, CYLINDER_RADIUS)) {
-              this.overworld.setBlockType(location, 'minecraft:water');
-              displacedWater.delete(key);
-              boundaryBarriers.delete(key);
-            }
-          }
-
-          // Clear water inside the current cylinder and remember its locations.
-          for (const location of locations.getBlockLocationIterator()) {
-            if (!this.isWithinCylinder(location, center, CYLINDER_RADIUS)) {
-              continue;
-            }
-
-            const block = this.overworld.getBlock(location);
-            if (
-              !block ||
-              (block.type.id !== 'minecraft:water' && !block.isWaterlogged)
-            ) {
-              continue;
-            }
-
-            const key = this.locationKey(location);
-            this.overworld.setBlockType(location, 'minecraft:air');
-            displacedWater.set(key, location);
-          }
-
-          const currentBoundaryKeys = new Set<string>();
-
-          for (const [key, location] of displacedWater.entries()) {
-            if (this.isCylinderBoundary(location, center, CYLINDER_RADIUS)) {
-              currentBoundaryKeys.add(key);
-              if (!boundaryBarriers.has(key)) {
-                this.overworld.setBlockType(location, 'minecraft:barrier');
-                boundaryBarriers.add(key);
-              }
-            }
-          }
-
-          for (const key of [...boundaryBarriers]) {
-            if (!currentBoundaryKeys.has(key)) {
-              const location = this.parseLocationKey(key);
-              if (displacedWater.has(key)) {
-                this.overworld.setBlockType(location, 'minecraft:air');
-              }
-              boundaryBarriers.delete(key);
-            }
-          }
+        distinctUntilChanged((previous, current) => {
+          return Vector3Utils.equals(previous.position, current.position);
         }),
       )
-      .subscribe();
+      .subscribe((data) => system.run(() => this.onTick(data, i++)));
+  }
+
+  onTick(event: PartingEvent, i: number) {
+    const displacedWater = this.displacedWater;
+    const boundaryBarriers = this.boundaryBarriers;
+    let affectedBlockCount = 0;
+
+    const mosesY = Math.floor(event.position.y);
+    const cx = Math.floor(event.position.x);
+    const cz = Math.floor(event.position.z);
+
+    const lowerY = mosesY - 10;
+    const upperY = Math.max(mosesY + 25, 63);
+
+    const from: Vector3 = {
+      x: cx - HORIZONTAL_RADIUS,
+      y: lowerY,
+      z: cz - HORIZONTAL_RADIUS,
+    };
+    const to: Vector3 = {
+      x: cx + HORIZONTAL_RADIUS,
+      y: upperY,
+      z: cz + HORIZONTAL_RADIUS,
+    };
+    const boundingBox = new BlockVolume(from, to);
+
+    const waterFilter = {
+      includeTypes: [WATER_BLOCK_TYPE, BARRIER_BLOCK_TYPE],
+    };
+    const barrierFillFilter = { includeTypes: [WATER_BLOCK_TYPE] };
+    const interiorFillFilter = {
+      includeTypes: [
+        WATER_BLOCK_TYPE,
+        BARRIER_BLOCK_TYPE,
+        'minecraft:seagrass',
+        'minecraft:tall_seagrass',
+        'minecraft:kelp',
+        'minecraft:sea_pickle',
+        ...WATERLOGGED_OCEAN_TYPES,
+      ],
+    };
+
+    // Phase 1 — track blocks and do bulk fills in one pass.
+    // Counts only newly-displaced blocks (skip entries already tracked).
+    let waterBlocksInBox = 0;
+    for (const loc of this.overworld
+      .getBlocks(boundingBox, waterFilter)
+      .getBlockLocationIterator()) {
+      waterBlocksInBox++;
+      const key = this.locationKey(loc);
+      if (this.isBoxBoundary(loc, cx, cz)) {
+        if (!boundaryBarriers.has(key)) affectedBlockCount++;
+        boundaryBarriers.set(key, loc);
+        displacedWater.set(key, loc);
+      } else {
+        if (!displacedWater.has(key)) affectedBlockCount++;
+        displacedWater.set(key, loc);
+        boundaryBarriers.delete(key);
+      }
+    }
+
+    // Phase 2 — bulk-fill interior water → air, chunked by Y to stay under
+    // the 32K-block fill limit (interior is ~84K blocks).
+    if (HORIZONTAL_RADIUS > 1) {
+      this.fillBlocksChunked(
+        cx - HORIZONTAL_RADIUS + 1,
+        cz - HORIZONTAL_RADIUS + 1,
+        cx + HORIZONTAL_RADIUS - 1,
+        cz + HORIZONTAL_RADIUS - 1,
+        lowerY,
+        upperY,
+        AIR_BLOCK_TYPE,
+        interiorFillFilter,
+      );
+    }
+
+    // Phase 3 — bulk-fill boundary walls: water → barrier (4 calls).
+    const fillBarrier = (fx: number, fz: number, tx: number, tz: number) => {
+      this.overworld.fillBlocks(
+        new BlockVolume(
+          { x: fx, y: lowerY, z: fz },
+          { x: tx, y: upperY, z: tz },
+        ),
+        BARRIER_BLOCK_TYPE,
+        { blockFilter: barrierFillFilter },
+      );
+    };
+
+    fillBarrier(
+      cx - HORIZONTAL_RADIUS,
+      cz - HORIZONTAL_RADIUS,
+      cx - HORIZONTAL_RADIUS,
+      cz + HORIZONTAL_RADIUS,
+    );
+    fillBarrier(
+      cx + HORIZONTAL_RADIUS,
+      cz - HORIZONTAL_RADIUS,
+      cx + HORIZONTAL_RADIUS,
+      cz + HORIZONTAL_RADIUS,
+    );
+    fillBarrier(
+      cx - HORIZONTAL_RADIUS + 1,
+      cz - HORIZONTAL_RADIUS,
+      cx + HORIZONTAL_RADIUS - 1,
+      cz - HORIZONTAL_RADIUS,
+    );
+    fillBarrier(
+      cx - HORIZONTAL_RADIUS + 1,
+      cz + HORIZONTAL_RADIUS,
+      cx + HORIZONTAL_RADIUS - 1,
+      cz + HORIZONTAL_RADIUS,
+    );
+
+    // Phase 4 — un-waterlog coral blocks (few, individual calls ok).
+    for (const loc of this.overworld
+      .getBlocks(boundingBox, { includeTypes: WATERLOGGED_OCEAN_TYPES })
+      .getBlockLocationIterator()) {
+      if (this.isBoxBoundary(loc, cx, cz)) continue;
+
+      const key = this.locationKey(loc);
+      if (displacedWater.has(key)) continue;
+
+      try {
+        const block = this.overworld.getBlock(loc);
+        if (block?.isWaterlogged) {
+          block.setWaterlogged(false);
+          displacedWater.set(key, loc);
+          affectedBlockCount++;
+        }
+      } catch (_) {}
+    }
+
+    // Phase 5 — restore water & revive coral behind the prophet.
+    const exterior: Vector3[] = [];
+    for (const [key, loc] of displacedWater) {
+      if (boundaryBarriers.has(key)) continue;
+      if (!this.isWithinBox(loc, cx, cz)) {
+        exterior.push(loc);
+        this.overworld.setBlockType(loc, WATER_BLOCK_TYPE);
+        displacedWater.delete(key);
+        affectedBlockCount++;
+      }
+    }
+    for (const [key, loc] of boundaryBarriers) {
+      if (!this.isWithinBox(loc, cx, cz)) {
+        exterior.push(loc);
+        this.overworld.setBlockType(loc, WATER_BLOCK_TYPE);
+        boundaryBarriers.delete(key);
+        displacedWater.delete(key);
+        affectedBlockCount++;
+      }
+    }
+    if (exterior.length > 0) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      for (const loc of exterior) {
+        if (loc.x < minX) minX = loc.x; if (loc.x > maxX) maxX = loc.x;
+        if (loc.y < minY) minY = loc.y; if (loc.y > maxY) maxY = loc.y;
+        if (loc.z < minZ) minZ = loc.z; if (loc.z > maxZ) maxZ = loc.z;
+      }
+      const vol = new BlockVolume(
+        { x: minX, y: minY, z: minZ },
+        { x: maxX, y: maxY, z: maxZ },
+      );
+      for (const loc of this.overworld
+        .getBlocks(vol, { includeTypes: Object.keys(DEAD_TO_ALIVE_CORAL) })
+        .getBlockLocationIterator()) {
+        try {
+          const block = this.overworld.getBlock(loc);
+          const aliveType = DEAD_TO_ALIVE_CORAL[block?.typeId ?? ''];
+          if (aliveType) this.overworld.setBlockType(loc, aliveType);
+        } catch (_) {}
+      }
+    }
+
+    if (affectedBlockCount === 0) {
+      if (
+        waterBlocksInBox === 0 &&
+        (displacedWater.size > 0 || boundaryBarriers.size > 0)
+      ) {
+        // Prophet walked out of the ocean — restore remaining displaced blocks.
+        // Bulk-fill interior blocks (all below sea level), then handle
+        // boundary barriers individually to avoid spilling water above ground.
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+        let hasInterior = false;
+        for (const [key, loc] of displacedWater) {
+          if (boundaryBarriers.has(key)) continue;
+          hasInterior = true;
+          if (loc.x < minX) minX = loc.x;
+          if (loc.x > maxX) maxX = loc.x;
+          if (loc.y < minY) minY = loc.y;
+          if (loc.y > maxY) maxY = loc.y;
+          if (loc.z < minZ) minZ = loc.z;
+          if (loc.z > maxZ) maxZ = loc.z;
+        }
+        if (hasInterior) {
+          this.fillBlocksChunked(
+            minX, minZ, maxX, maxZ, minY, maxY,
+            WATER_BLOCK_TYPE,
+            { includeTypes: [AIR_BLOCK_TYPE, BARRIER_BLOCK_TYPE] },
+          );
+          const deadCoralVolume = new BlockVolume(
+            { x: minX, y: minY, z: minZ },
+            { x: maxX, y: maxY, z: maxZ },
+          );
+          for (const loc of this.overworld
+            .getBlocks(deadCoralVolume, {
+              includeTypes: Object.keys(DEAD_TO_ALIVE_CORAL),
+            })
+            .getBlockLocationIterator()) {
+            try {
+              const block = this.overworld.getBlock(loc);
+              const aliveType = DEAD_TO_ALIVE_CORAL[block?.typeId ?? ''];
+              if (aliveType) this.overworld.setBlockType(loc, aliveType);
+            } catch (_) {}
+          }
+        }
+        for (const [, loc] of boundaryBarriers) {
+          this.overworld.setBlockType(loc, WATER_BLOCK_TYPE);
+        }
+        displacedWater.clear();
+        boundaryBarriers.clear();
+        this.outOfWater$.next();
+      } else if (displacedWater.size === 0 && boundaryBarriers.size === 0) {
+        this.outOfWater$.next();
+      }
+    }
   }
 }
